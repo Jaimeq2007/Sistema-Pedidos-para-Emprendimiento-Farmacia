@@ -79,11 +79,11 @@ sistema_farmacia/
 Cada vez que el sistema registra un movimiento de inventario (venta, cancelación
 de pedido, alta, ajuste manual o eliminación de un medicamento), el movimiento
 se apila automáticamente en `PilaDeshacerKardex`. Desde la ventana **Kardex de
-Movimientos** el usuario puede pulsar **"↩️ Deshacer último movimiento"** para
+Movimientos** el usuario puede pulsar **" Deshacer último movimiento"** para
 revertir (LIFO) el movimiento más reciente: se restaura el stock anterior y se
 registra en el kardex un movimiento inverso de auditoría.
 
 ## Repositorio
 
 > Reemplazar con el enlace real antes de la entrega:
-> `https://github.com/<usuario>/sistema-farmacia`
+> `https://github.com/Jaimeq2007/Sistema-Pedidos-para-Emprendimiento-Farmacia.git`
