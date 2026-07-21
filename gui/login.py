@@ -1,89 +1,67 @@
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
-from gui.estilos import aplicar_favicon, centrar_ventana, FUENTE_TITULO, FUENTE_NORMAL
+from gui.estilos import (
+    aplicar_favicon,
+    centrar_ventana,
+    cargar_logo_uleam,
+    FUENTE_TITULO,
+    FUENTE_NORMAL,
+    FUENTE_BOTON,
+    COLOR_PELIGRO,
+)
+from services import persistencia
 
 
-class VentanaAlertasVencimiento(tb.Toplevel):
+class VentanaLogin(tb.Frame):
 
-    def __init__(self, parent, lista_medicamentos):
-        super().__init__(parent)
-        self.title("Alertas de Vencimiento")
-        aplicar_favicon(self)
-        self.lista = lista_medicamentos
+    def __init__(self, parent, al_iniciar_sesion):
+        super().__init__(parent, padding=30)
+        self.parent = parent
+        self.al_iniciar_sesion = al_iniciar_sesion
+        self.pack(fill="both", expand=True)
         self._construir_ui()
-        self._refrescar()
-        centrar_ventana(self, 700, 520)
+        centrar_ventana(parent, 420, 530)
 
     def _construir_ui(self):
+        contenedor = tb.Frame(self, padding=20)
+        contenedor.pack(expand=True)
+        logo_uleam = cargar_logo_uleam(alto_deseado=110)
+        if logo_uleam is not None:
+            label_logo = tb.Label(contenedor, image=logo_uleam)
+            label_logo.image = logo_uleam
+            label_logo.pack(pady=(0, 10))
+        tb.Label(contenedor, text="Farmacia", font=FUENTE_TITULO).pack(pady=(10, 0))
         tb.Label(
-            self, text="⏰ Alertas de Vencimiento", font=FUENTE_TITULO
-        ).pack(pady=(15, 5))
-        controles = tb.Frame(self)
-        controles.pack(pady=(0, 10))
-        tb.Label(controles, text="Alertar si vence en:", font=FUENTE_NORMAL).pack(
-            side="left", padx=(0, 8)
+            contenedor,
+            text="Sistema de Pedidos",
+            font=FUENTE_NORMAL,
+            bootstyle="secondary",
+        ).pack(pady=(0, 25))
+        tb.Label(contenedor, text="Usuario", font=FUENTE_NORMAL).pack(anchor="w")
+        self.entry_usuario = tb.Entry(contenedor, width=30)
+        self.entry_usuario.pack(pady=(2, 15), ipady=4)
+        tb.Label(contenedor, text="Contraseña", font=FUENTE_NORMAL).pack(anchor="w")
+        self.entry_clave = tb.Entry(contenedor, width=30, show="•")
+        self.entry_clave.pack(pady=(2, 5), ipady=4)
+        self.label_error = tb.Label(
+            contenedor, text="", font=FUENTE_NORMAL, bootstyle="danger"
         )
-        self.umbral = tb.IntVar(value=30)
-        self.combo_umbral = tb.Combobox(
-            controles,
-            textvariable=self.umbral,
-            values=[7, 15, 30, 60, 90],
-            width=6,
-            state="readonly",
-        )
-        self.combo_umbral.pack(side="left")
-        tb.Label(controles, text="días", font=FUENTE_NORMAL).pack(
-            side="left", padx=(6, 0)
-        )
-        self.combo_umbral.bind("<<ComboboxSelected>>", lambda e: self._refrescar())
-        self.label_resumen = tb.Label(self, text="", font=FUENTE_NORMAL, bootstyle="secondary")
-        self.label_resumen.pack(pady=(0, 10))
-        columnas = ("codigo", "nombre", "vencimiento", "dias", "estado")
-        self.tabla = tb.Treeview(
-            self, columns=columnas, show="headings", bootstyle="danger", height=16
-        )
-        encabezados = [
-            ("codigo", "Código", 70),
-            ("nombre", "Nombre", 200),
-            ("vencimiento", "Vencimiento", 100),
-            ("dias", "Días restantes", 110),
-            ("estado", "Estado", 100),
-        ]
-        for col, txt, w in encabezados:
-            self.tabla.heading(col, text=txt)
-            self.tabla.column(col, width=w, anchor="center")
-        self.tabla.pack(fill="both", expand=True, padx=15, pady=(0, 15))
-        self.tabla.tag_configure("vencido", foreground="#FFFFFF", background="#D9534F")
-        self.tabla.tag_configure("por_vencer", foreground="#B8860B")
+        self.label_error.pack(pady=(0, 10))
+        tb.Button(
+            contenedor,
+            text="Iniciar Sesión",
+            bootstyle="success",
+            width=25,
+            command=self._validar_login,
+        ).pack(pady=5, ipady=4)
+        self.entry_clave.bind("<Return>", lambda e: self._validar_login())
 
-    def _refrescar(self):
-        for fila in self.tabla.get_children():
-            self.tabla.delete(fila)
-        umbral = int(self.umbral.get())
-        alertas = []
-        for med in self.lista.a_lista():
-            estado = med.estado_vencimiento(umbral_dias=umbral)
-            if estado in ("vencido", "por_vencer"):
-                alertas.append((med, estado))
-        alertas.sort(key=lambda par: par[0].dias_para_vencer())
-        vencidos = sum(1 for _, estado in alertas if estado == "vencido")
-        por_vencer = sum(1 for _, estado in alertas if estado == "por_vencer")
-        self.label_resumen.config(
-            text=f"🔴 {vencidos} vencido(s)   🟡 {por_vencer} por vencer"
-        )
-        for med, estado in alertas:
-            dias = med.dias_para_vencer()
-            texto_estado = "VENCIDO" if estado == "vencido" else "Por vencer"
-            texto_dias = f"{dias} días" if dias >= 0 else f"{abs(dias)} días atrás"
-            self.tabla.insert(
-                "",
-                "end",
-                values=(med.codigo, med.nombre, med.fecha_vencimiento, texto_dias, texto_estado),
-                tags=(estado,),
-            )
-        if not alertas:
-            self.tabla.insert(
-                "",
-                "end",
-                values=("—", "No hay medicamentos vencidos ni por vencer ✅", "", "", ""),
-            )
+    def _validar_login(self):
+        usuario = self.entry_usuario.get().strip()
+        clave = self.entry_clave.get().strip()
+        u = persistencia.verificar_credenciales(usuario, clave)
+        if u:
+            self.label_error.config(text="")
+            self.al_iniciar_sesion(u)
+            return
+        self.label_error.config(text="Usuario o contraseña incorrectos")
