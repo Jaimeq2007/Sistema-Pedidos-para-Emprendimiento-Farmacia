@@ -29,7 +29,6 @@ pip install ttkbootstrap reportlab
 ## Ejecución
 
 ```bash
-cd sistema_farmacia
 python main.py
 ```
 
@@ -43,7 +42,6 @@ datos** (flujo normal, caso límite y dato inválido), tal como exige la guía d
 evaluación:
 
 ```bash
-cd sistema_farmacia
 python tests/test_estructuras.py
 ```
 
@@ -53,7 +51,7 @@ flujo normal del sistema (catálogo, búsqueda, cola de pedidos y recursividad).
 ## Estructura del proyecto
 
 ```
-sistema_farmacia/
+.
 ├── main.py                     # Punto de entrada
 ├── models/                     # Medicamento, Pedido, NodoArbol
 ├── services/                   # Lógica de negocio y estructuras de datos
@@ -70,6 +68,9 @@ sistema_farmacia/
 ├── data/                       # Persistencia en archivos JSON
 ├── assets/                     # Íconos y recursos gráficos
 ├── utils/                      # Utilidades (ventanas con scroll, etc.)
+├── docs/                       # Documentación del proyecto
+├── reportes/                   # Reportes PDF generados por el sistema
+├── test_rapido.py              # Demostración manual end-to-end
 └── tests/
     └── test_estructuras.py     # Pruebas de las 4 estructuras de datos
 ```
@@ -85,5 +86,5 @@ registra en el kardex un movimiento inverso de auditoría.
 
 ## Repositorio
 
-> Reemplazar con el enlace real antes de la entrega:
+> enlace  de la entrega:
 > `https://github.com/Jaimeq2007/Sistema-Pedidos-para-Emprendimiento-Farmacia.git`
